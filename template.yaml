@@ -1,0 +1,231 @@
+# template.yaml - Estoque Service
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Estoque Service - Inventory Management Microservice'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+    Description: Environment name
+
+  DatabasePassword:
+    Type: String
+    NoEcho: true
+    Default: dev123456
+    Description: Database password
+
+  IdentityServiceUrl:
+    Type: String
+    Default: ""
+    Description: URL of the Identity Service for auth validation
+
+Globals:
+  Function:
+    Runtime: python3.11
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        ENVIRONMENT: !Ref Environment
+        LOG_LEVEL: INFO
+        
+        # Database
+        DB_HOST: !GetAtt EstoqueDatabase.Endpoint.Address
+        DB_PORT: !GetAtt EstoqueDatabase.Endpoint.Port
+        DB_NAME: estoque_db
+        DB_USER: postgres
+        DB_PASSWORD: !Ref DatabasePassword
+        
+        # Service URLs
+        IDENTITY_SERVICE_URL: !Ref IdentityServiceUrl
+        
+        # AWS
+        AWS_REGION: !Ref AWS::Region
+        AWS_ACCOUNT_ID: !Ref AWS::AccountId
+
+Resources:
+  # === INVENTORY CRUD FUNCTIONS ===
+  
+  CreateInventoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.estoque_handler.create_inventory_handler
+      Description: Create new inventory record
+      Events:
+        CreateInventory:
+          Type: Api
+          Properties:
+            Path: /inventory
+            Method: POST
+
+  GetInventoryByProductFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.estoque_handler.get_inventory_by_product_handler
+      Description: Get inventory by product ID
+      Events:
+        GetInventoryByProduct:
+          Type: Api
+          Properties:
+            Path: /inventory/product/{produto_id}
+            Method: GET
+
+  ListInventoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.estoque_handler.list_inventory_handler
+      Description: List all inventory with pagination
+      Events:
+        ListInventory:
+          Type: Api
+          Properties:
+            Path: /inventory
+            Method: GET
+
+  # === STOCK MOVEMENT FUNCTIONS ===
+
+  AddStockFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.estoque_handler.add_stock_handler
+      Description: Add stock to product
+      Events:
+        AddStock:
+          Type: Api
+          Properties:
+            Path: /inventory/add-stock
+            Method: POST
+
+  RemoveStockFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.estoque_handler.remove_stock_handler
+      Description: Remove stock from product
+      Events:
+        RemoveStock:
+          Type: Api
+          Properties:
+            Path: /inventory/remove-stock
+            Method: POST
+
+  AdjustStockFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.estoque_handler.adjust_stock_handler
+      Description: Adjust stock to new quantity
+      Events:
+        AdjustStock:
+          Type: Api
+          Properties:
+            Path: /inventory/adjust-stock
+            Method: POST
+
+  # === REPORTS FUNCTIONS ===
+
+  LowStockReportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.estoque_handler.low_stock_report_handler
+      Description: Get low stock report
+      Events:
+        LowStockReport:
+          Type: Api
+          Properties:
+            Path: /inventory/reports/low-stock
+            Method: GET
+
+  OutOfStockReportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.estoque_handler.out_of_stock_report_handler
+      Description: Get out of stock report
+      Events:
+        OutOfStockReport:
+          Type: Api
+          Properties:
+            Path: /inventory/reports/out-of-stock
+            Method: GET
+
+  # === UTILITY FUNCTIONS ===
+
+  HealthCheckFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.estoque_handler.health_check_handler
+      Description: Health check endpoint
+      Events:
+        HealthCheck:
+          Type: Api
+          Properties:
+            Path: /health
+            Method: GET
+
+  # === DATABASE ===
+
+  EstoqueDatabase:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub "${Environment}-estoque-db"
+      DBName: estoque_db
+      Engine: postgres
+      EngineVersion: '15.3'
+      MasterUsername: postgres
+      MasterUserPassword: !Ref DatabasePassword
+      DBInstanceClass: db.t3.micro
+      AllocatedStorage: 20
+      StorageType: gp2
+      PubliclyAccessible: true
+      VPCSecurityGroups:
+        - !Ref DatabaseSecurityGroup
+      BackupRetentionPeriod: 7
+      DeleteAutomatedBackups: true
+      DeletionProtection: false
+
+  # === SECURITY ===
+
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Estoque database
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0  # Em produção, restringir para VPC
+
+Outputs:
+  EstoqueApiUrl:
+    Description: "API Gateway endpoint URL for Estoque service"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    Export:
+      Name: !Sub "${Environment}-estoque-api-url"
+
+  DatabaseEndpoint:
+    Description: "Database endpoint"
+    Value: !GetAtt EstoqueDatabase.Endpoint.Address
+    Export:
+      Name: !Sub "${Environment}-estoque-db-endpoint"
+
+  # Export function names for monitoring
+  CreateInventoryFunctionName:
+    Description: "Create Inventory Function Name"
+    Value: !Ref CreateInventoryFunction
+    Export:
+      Name: !Sub "${Environment}-create-inventory-function"
+
+  ListInventoryFunctionName:
+    Description: "List Inventory Function Name"
+    Value: !Ref ListInventoryFunction
+    Export:
+      Name: !Sub "${Environment}-list-inventory-function"
