@@ -31,6 +31,12 @@ Globals:
         DATABASE_URL: !Ref DatabaseUrlParameter
     Tags:
       Service: estoque    # tag aplicada a todas as Lambdas
+    VpcConfig:
+      SecurityGroupIds:
+        - sg-0023175edfd49ca18
+      SubnetIds:
+        - subnet-0f12951fa6cccef8e #privada
+        - subnet-0d9dc74d2a9c8c4f6 #privada
 
 Resources:
   # 1) API Gateway explícito
@@ -63,7 +69,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref EstoqueApi
-            Path: /inventory
+            Path: /api/v1/estoque
             Method: POST
 
   GetInventoryByProductFunction:
@@ -77,7 +83,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref EstoqueApi
-            Path: /inventory/product/{produto_id}
+            Path: /api/v1/inventory/product/{produto_id}
             Method: GET
 
   ListInventoryFunction:
@@ -91,7 +97,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref EstoqueApi
-            Path: /inventory
+            Path: /api/v1/inventory
             Method: GET
 
   # === STOCK MOVEMENT FUNCTIONS ===
@@ -107,7 +113,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref EstoqueApi
-            Path: /inventory/add-stock
+            Path: /api/v1/inventory/add-stock
             Method: POST
 
   RemoveStockFunction:
@@ -121,7 +127,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref EstoqueApi
-            Path: /inventory/remove-stock
+            Path: /api/v1/inventory/remove-stock
             Method: POST
 
   AdjustStockFunction:
@@ -135,7 +141,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref EstoqueApi
-            Path: /inventory/adjust-stock
+            Path: /api/v1/inventory/adjust-stock
             Method: POST
 
   # === REPORTS FUNCTIONS ===
@@ -151,7 +157,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref EstoqueApi
-            Path: /inventory/reports/low-stock
+            Path: /api/v1/inventory/reports/low-stock
             Method: GET
 
   OutOfStockReportFunction:
@@ -165,7 +171,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref EstoqueApi
-            Path: /inventory/reports/out-of-stock
+            Path: /api/v1/inventory/reports/out-of-stock
             Method: GET
 
   # === HEALTH CHECK (público) ===
@@ -181,7 +187,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref EstoqueApi
-            Path: /health
+            Path: /api/v1/health
             Method: GET
             Auth:
               Authorizer: NONE
@@ -191,16 +197,16 @@ Outputs:
     Description: "API Gateway endpoint URL for Estoque service"
     Value: !Sub "https://${EstoqueApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
     Export:
-      Name: !Sub "${Environment}-estoque-api-url"
+      Name: "estoque-api-url"
 
   CreateInventoryFunctionName:
     Description: "Create Inventory Function Name"
     Value: !Ref CreateInventoryFunction
     Export:
-      Name: !Sub "${Environment}-create-inventory-function"
+      Name: "create-inventory-function"
 
   ListInventoryFunctionName:
     Description: "List Inventory Function Name"
     Value: !Ref ListInventoryFunction
     Export:
-      Name: !Sub "${Environment}-list-inventory-function"
+      Name: "list-inventory-function"
