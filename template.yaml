@@ -24,20 +24,29 @@ Globals:
       Variables:
         ENVIRONMENT: !Ref Environment
         LOG_LEVEL: INFO
-
-  Api:
-    Auth:
-      DefaultAuthorizer: LambdaAuth
-      AddDefaultAuthorizerToCorsPreflight: false
-      Authorizers:
-        LambdaAuth:
-          FunctionArn: !ImportValue
-            Fn::Sub: "AuthFunctionArn"
-          Identity:
-            Header: Authorization
+    Tags:
+      Service: estoque    # tag aplicada a todas as Lambdas
 
 Resources:
+  # 1) API Gateway explícito
+  EstoqueApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Auth:
+        DefaultAuthorizer: LambdaAuth
+        AddDefaultAuthorizerToCorsPreflight: false
+        Authorizers:
+          LambdaAuth:
+            FunctionArn: !ImportValue
+              !Sub 'AuthFunctionArn'
+            Identity:
+              Header: Authorization
+      Tags:
+        Service: estoque   # tag aplicada ao API Gateway
+
   # === INVENTORY CRUD FUNCTIONS ===
+
   CreateInventoryFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -48,6 +57,7 @@ Resources:
         CreateInventory:
           Type: Api
           Properties:
+            RestApiId: !Ref EstoqueApi
             Path: /inventory
             Method: POST
 
@@ -61,6 +71,7 @@ Resources:
         GetInventoryByProduct:
           Type: Api
           Properties:
+            RestApiId: !Ref EstoqueApi
             Path: /inventory/product/{produto_id}
             Method: GET
 
@@ -74,10 +85,12 @@ Resources:
         ListInventory:
           Type: Api
           Properties:
+            RestApiId: !Ref EstoqueApi
             Path: /inventory
             Method: GET
 
   # === STOCK MOVEMENT FUNCTIONS ===
+
   AddStockFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -88,6 +101,7 @@ Resources:
         AddStock:
           Type: Api
           Properties:
+            RestApiId: !Ref EstoqueApi
             Path: /inventory/add-stock
             Method: POST
 
@@ -101,6 +115,7 @@ Resources:
         RemoveStock:
           Type: Api
           Properties:
+            RestApiId: !Ref EstoqueApi
             Path: /inventory/remove-stock
             Method: POST
 
@@ -114,10 +129,12 @@ Resources:
         AdjustStock:
           Type: Api
           Properties:
+            RestApiId: !Ref EstoqueApi
             Path: /inventory/adjust-stock
             Method: POST
 
   # === REPORTS FUNCTIONS ===
+
   LowStockReportFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -128,6 +145,7 @@ Resources:
         LowStockReport:
           Type: Api
           Properties:
+            RestApiId: !Ref EstoqueApi
             Path: /inventory/reports/low-stock
             Method: GET
 
@@ -141,10 +159,12 @@ Resources:
         OutOfStockReport:
           Type: Api
           Properties:
+            RestApiId: !Ref EstoqueApi
             Path: /inventory/reports/out-of-stock
             Method: GET
 
-  # === UTILITY FUNCTIONS ===
+  # === HEALTH CHECK (público) ===
+
   HealthCheckFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -155,6 +175,7 @@ Resources:
         HealthCheck:
           Type: Api
           Properties:
+            RestApiId: !Ref EstoqueApi
             Path: /health
             Method: GET
             Auth:
@@ -163,11 +184,10 @@ Resources:
 Outputs:
   EstoqueApiUrl:
     Description: "API Gateway endpoint URL for Estoque service"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    Value: !Sub "https://${EstoqueApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
     Export:
       Name: !Sub "${Environment}-estoque-api-url"
 
-  # Export function names for monitoring
   CreateInventoryFunctionName:
     Description: "Create Inventory Function Name"
     Value: !Ref CreateInventoryFunction
