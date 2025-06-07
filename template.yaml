@@ -17,7 +17,7 @@ Parameters:
 
   DatabaseUrlParameter:
     Type: AWS::SSM::Parameter::Value<String>    # ou <SecureString>
-    Default: /estoque/database_url
+    Default: /secret/database_url
 
 Globals:
   Function:
@@ -44,7 +44,7 @@ Resources:
         Authorizers:
           LambdaAuth:
             FunctionArn: !ImportValue
-              !Sub 'AuthFunctionArn'
+              Fn::Sub: 'AuthFunctionArn'
             Identity:
               Header: Authorization
       Tags:
