@@ -15,6 +15,10 @@ Parameters:
     Default: dev123456
     Description: Database password
 
+  DatabaseUrlParameter:
+    Type: AWS::SSM::Parameter::Value<String>    # ou <SecureString>
+    Default: /estoque/database_url
+
 Globals:
   Function:
     Runtime: python3.13
@@ -24,6 +28,7 @@ Globals:
       Variables:
         ENVIRONMENT: !Ref Environment
         LOG_LEVEL: INFO
+        DATABASE_URL: !Ref DatabaseUrlParameter
     Tags:
       Service: estoque    # tag aplicada a todas as Lambdas
 
