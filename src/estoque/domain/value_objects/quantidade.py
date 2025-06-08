@@ -4,9 +4,9 @@
 from decimal import Decimal
 from typing import Any
 
+from src.estoque.domain.value_objects.unidade_medida import UnidadeMedida
 from src.shared.domain.value_objects.base import ValueObject
 from src.shared.domain.exceptions.base import ValidationException
-from src.produto.domain.value_objects.unidade_medida import UnidadeMedida
 
 
 class Quantidade(ValueObject):

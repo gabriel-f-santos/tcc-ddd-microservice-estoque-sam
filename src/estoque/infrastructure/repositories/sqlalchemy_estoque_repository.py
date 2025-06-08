@@ -4,13 +4,13 @@
 from typing import List, Optional
 from uuid import UUID
 
+from src.estoque.domain.value_objects.unidade_medida import UnidadeMedida
 import structlog
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.estoque.domain.entities.estoque_produto import EstoqueProduto
 from src.estoque.domain.repositories.estoque_repository import EstoqueRepository
-from src.produto.domain.value_objects.unidade_medida import UnidadeMedida
 from src.estoque.infrastructure.models.estoque_model import EstoqueModel
 
 logger = structlog.get_logger()

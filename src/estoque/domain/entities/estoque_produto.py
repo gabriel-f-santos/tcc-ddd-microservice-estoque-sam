@@ -5,10 +5,10 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
+from src.estoque.domain.value_objects.unidade_medida import UnidadeMedida
 from src.shared.domain.entities.base import AggregateRoot, Entity
 from src.shared.domain.exceptions.base import ValidationException, BusinessRuleException
 from src.estoque.domain.value_objects.quantidade import Quantidade
-from src.produto.domain.value_objects.unidade_medida import UnidadeMedida
 
 
 class EstoqueProduto(Entity):

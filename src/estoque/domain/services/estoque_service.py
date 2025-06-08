@@ -5,8 +5,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from src.shared.domain.exceptions.base import BusinessRuleException
-from src.produto.domain.entities.produto import Produto
-from src.estoque.domain.entities.estoque_produto import EstoqueProduto
+from src.estoque.domain.entities.estoque_produto import EstoqueProduto, EstoqueProdutoReplication
 
 
 class EstoqueService:
@@ -15,7 +14,7 @@ class EstoqueService:
     @staticmethod
     def validar_movimentacao_estoque(
         estoque: EstoqueProduto,
-        produto: Produto,
+        produto: EstoqueProdutoReplication,
         quantidade: int,
         tipo_operacao: str
     ) -> None:
