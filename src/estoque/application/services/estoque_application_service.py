@@ -9,10 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.shared.application.services.base import BaseApplicationService
 from src.shared.domain.exceptions.base import ValidationException, BusinessRuleException
-from src.estoque.domain.entities.estoque_produto import EstoqueProduto
-from src.produto.domain.entities.produto import Produto
+from src.estoque.domain.entities.estoque_produto import EstoqueProduto, EstoqueProdutoReplication
 from src.estoque.domain.services.estoque_service import EstoqueService
-from src.produto.domain.value_objects.unidade_medida import UnidadeMedida
+from src.estoque.domain.value_objects.unidade_medida import UnidadeMedida
 from src.estoque.infrastructure.repositories.sqlalchemy_estoque_repository import SqlAlchemyEstoqueRepository
 from src.produto.infrastructure.repositories.sqlalchemy_produto_repository import SqlAlchemyProdutoRepository
 from src.estoque.application.dto.estoque_dto import (
@@ -44,7 +43,7 @@ class EstoqueApplicationService(BaseApplicationService[EstoqueProduto]):
         """Create new inventory record."""
         try:
             # Check if product exists
-            product = await self.produto_repository.get_by_id(create_dto.produto_id)
+            product: EstoqueProdutoReplication = await self.produto_repository.get_by_id(create_dto.produto_id)
             if product is None:
                 raise BusinessRuleException(f"Product not found: {create_dto.produto_id}")
             
@@ -289,7 +288,7 @@ class EstoqueApplicationService(BaseApplicationService[EstoqueProduto]):
             updated_at=inventory.atualizado_em
         )
     
-    def _product_entity_to_dto(self, product: Produto) -> ProdutoResponseDTO:
+    def _product_entity_to_dto(self, product: EstoqueProdutoReplication) -> ProdutoResponseDTO:
         """Convert product entity to DTO."""
         return ProdutoResponseDTO(
             id=product.id,
