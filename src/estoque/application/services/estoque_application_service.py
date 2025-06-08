@@ -26,8 +26,9 @@ from src.estoque.application.dto.estoque_dto import (
     EstoqueBaixoDTO,
     EstoqueZeradoDTO
 )
+from src.config import get_settings
 
-
+settings = get_settings()
 logger = structlog.get_logger()
 
 
@@ -37,20 +38,20 @@ class EstoqueApplicationService(BaseApplicationService[EstoqueProduto]):
     def __init__(self, db: AsyncSession):
         super().__init__(db)
         self.estoque_repository = SqlAlchemyEstoqueRepository(db)
-        self.produto_repository = SqlAlchemyProdutoRepository(db)
     
     async def create_inventory(self, create_dto: EstoqueCreateDTO) -> EstoqueResponseDTO:
         """Create new inventory record."""
         try:
             # Check if product exists via API
             import httpx
-            
-            async with httpx.AsyncClient() as client:
+            headers = {"Authorization": f"Bearer {settings.internal_api_key}"}
+
+            async with httpx.AsyncClient(headers=headers) as client:
                 try:
                     response = await client.get(f"https://543jlwvv4a.execute-api.us-east-1.amazonaws.com/Prod/api/v1/produtos/{create_dto.produto_id}")
                     response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
                     product_data = response.json()
-                    
+
                     product = EstoqueProdutoReplication(
                         id=product_data["id"],
                         sku=product_data["sku"],
@@ -59,9 +60,7 @@ class EstoqueApplicationService(BaseApplicationService[EstoqueProduto]):
                         categoria=product_data["categoria"],
                         unidade_medida=product_data["unidade_medida"],
                         nivel_minimo=product_data["nivel_minimo"],
-                        ativo=product_data["ativo"],
-                        created_at=product_data["created_at"],
-                        updated_at=product_data["updated_at"]
+                        ativo=product_data["ativo"]
                     )
                 except httpx.HTTPStatusError as e:
                     raise BusinessRuleException(f"Product not found: {create_dto.produto_id} - API error: {e}")
@@ -140,13 +139,14 @@ class EstoqueApplicationService(BaseApplicationService[EstoqueProduto]):
             if inventory is None:
                 raise BusinessRuleException(f"Inventory not found for product: {movimento_dto.produto_id}")
             import httpx
-            
-            async with httpx.AsyncClient() as client:
+            headers = {"Authorization": f"Bearer {settings.internal_api_key}"}
+
+            async with httpx.AsyncClient(headers=headers) as client:
                 try:
                     response = await client.get(f"https://543jlwvv4a.execute-api.us-east-1.amazonaws.com/Prod/api/v1/produtos/{movimento_dto.produto_id}")
                     response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
                     product_data = response.json()
-                    
+
                     product = EstoqueProdutoReplication(
                         id=product_data["id"],
                         sku=product_data["sku"],
@@ -155,15 +155,12 @@ class EstoqueApplicationService(BaseApplicationService[EstoqueProduto]):
                         categoria=product_data["categoria"],
                         unidade_medida=product_data["unidade_medida"],
                         nivel_minimo=product_data["nivel_minimo"],
-                        ativo=product_data["ativo"],
-                        created_at=product_data["created_at"],
-                        updated_at=product_data["updated_at"]
+                        ativo=product_data["ativo"]
                     )
                 except httpx.HTTPStatusError as e:
                     raise BusinessRuleException(f"Product not found: {movimento_dto.produto_id} - API error: {e}")
                 except httpx.RequestError as e:
                     raise BusinessRuleException(f"Failed to connect to product service: {e}")
-            
             # Validate movement
             EstoqueService.validar_movimentacao_estoque(
                 inventory, product, movimento_dto.quantidade, "entrada"
@@ -198,13 +195,14 @@ class EstoqueApplicationService(BaseApplicationService[EstoqueProduto]):
             if inventory is None:
                 raise BusinessRuleException(f"Inventory not found for product: {movimento_dto.produto_id}")
             import httpx
-            
-            async with httpx.AsyncClient() as client:
+            headers = {"Authorization": f"Bearer {settings.internal_api_key}"}
+
+            async with httpx.AsyncClient(headers=headers) as client:
                 try:
                     response = await client.get(f"https://543jlwvv4a.execute-api.us-east-1.amazonaws.com/Prod/api/v1/produtos/{movimento_dto.produto_id}")
                     response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
                     product_data = response.json()
-                    
+
                     product = EstoqueProdutoReplication(
                         id=product_data["id"],
                         sku=product_data["sku"],
@@ -213,15 +211,12 @@ class EstoqueApplicationService(BaseApplicationService[EstoqueProduto]):
                         categoria=product_data["categoria"],
                         unidade_medida=product_data["unidade_medida"],
                         nivel_minimo=product_data["nivel_minimo"],
-                        ativo=product_data["ativo"],
-                        created_at=product_data["created_at"],
-                        updated_at=product_data["updated_at"]
+                        ativo=product_data["ativo"]
                     )
                 except httpx.HTTPStatusError as e:
                     raise BusinessRuleException(f"Product not found: {movimento_dto.produto_id} - API error: {e}")
                 except httpx.RequestError as e:
                     raise BusinessRuleException(f"Failed to connect to product service: {e}")
-            
             # Validate movement
             EstoqueService.validar_movimentacao_estoque(
                 inventory, product, movimento_dto.quantidade, "saida"
@@ -257,13 +252,14 @@ class EstoqueApplicationService(BaseApplicationService[EstoqueProduto]):
                 raise BusinessRuleException(f"Inventory not found for product: {ajuste_dto.produto_id}")
             
             import httpx
-            
-            async with httpx.AsyncClient() as client:
+            headers = {"Authorization": f"Bearer {settings.internal_api_key}"}
+
+            async with httpx.AsyncClient(headers=headers) as client:
                 try:
                     response = await client.get(f"https://543jlwvv4a.execute-api.us-east-1.amazonaws.com/Prod/api/v1/produtos/{ajuste_dto.produto_id}")
                     response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
                     product_data = response.json()
-                    
+
                     product = EstoqueProdutoReplication(
                         id=product_data["id"],
                         sku=product_data["sku"],
@@ -272,9 +268,7 @@ class EstoqueApplicationService(BaseApplicationService[EstoqueProduto]):
                         categoria=product_data["categoria"],
                         unidade_medida=product_data["unidade_medida"],
                         nivel_minimo=product_data["nivel_minimo"],
-                        ativo=product_data["ativo"],
-                        created_at=product_data["created_at"],
-                        updated_at=product_data["updated_at"]
+                        ativo=product_data["ativo"]
                     )
                 except httpx.HTTPStatusError as e:
                     raise BusinessRuleException(f"Product not found: {ajuste_dto.produto_id} - API error: {e}")
@@ -311,12 +305,32 @@ class EstoqueApplicationService(BaseApplicationService[EstoqueProduto]):
             # Get product details
             produtos_baixo_estoque = []
             for inventory in low_stock_inventories:
-                product = await self.produto_repository.get_by_id(inventory.produto_id)
-                if product:
-                    produtos_baixo_estoque.append(EstoqueComProdutoDTO(
-                        estoque=self._entity_to_response_dto(inventory),
-                        produto=self._product_entity_to_dto(product)
-                    ))
+                import httpx
+                headers = {"Authorization": f"Bearer {settings.internal_api_key}"}
+                async with httpx.AsyncClient(headers=headers) as client:
+                    try:
+                        response = await client.get(f"https://543jlwvv4a.execute-api.us-east-1.amazonaws.com/Prod/api/v1/produtos/{inventory.produto_id}")
+                        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+                        product_data = response.json()
+
+                        product = EstoqueProdutoReplication(
+                            id=product_data["id"],
+                            sku=product_data["sku"],
+                            nome=product_data["nome"],
+                            descricao=product_data["descricao"],
+                            categoria=product_data["categoria"],
+                            unidade_medida=product_data["unidade_medida"],
+                            nivel_minimo=product_data["nivel_minimo"],
+                            ativo=product_data["ativo"]
+                        )
+                        produtos_baixo_estoque.append(EstoqueComProdutoDTO(
+                            estoque=self._entity_to_response_dto(inventory),
+                            produto=self._product_entity_to_dto(product)
+                        ))
+                    except httpx.HTTPStatusError as e:
+                        logger.error(f"Product not found: {inventory.produto_id} - API error: {e}")
+                    except httpx.RequestError as e:
+                        logger.error(f"Failed to connect to product service: {e}")
             
             return EstoqueBaixoDTO(
                 produtos_baixo_estoque=produtos_baixo_estoque,
@@ -335,12 +349,32 @@ class EstoqueApplicationService(BaseApplicationService[EstoqueProduto]):
             # Get product details
             produtos_sem_estoque = []
             for inventory in out_of_stock_inventories:
-                product = await self.produto_repository.get_by_id(inventory.produto_id)
-                if product:
-                    produtos_sem_estoque.append(EstoqueComProdutoDTO(
-                        estoque=self._entity_to_response_dto(inventory),
-                        produto=self._product_entity_to_dto(product)
-                    ))
+                import httpx
+                headers = {"Authorization": f"Bearer {settings.internal_api_key}"}
+                async with httpx.AsyncClient(headers=headers) as client:
+                    try:
+                        response = await client.get(f"https://543jlwvv4a.execute-api.us-east-1.amazonaws.com/Prod/api/v1/produtos/{inventory.produto_id}")
+                        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+                        product_data = response.json()
+
+                        product = EstoqueProdutoReplication(
+                            id=product_data["id"],
+                            sku=product_data["sku"],
+                            nome=product_data["nome"],
+                            descricao=product_data["descricao"],
+                            categoria=product_data["categoria"],
+                            unidade_medida=product_data["unidade_medida"],
+                            nivel_minimo=product_data["nivel_minimo"],
+                            ativo=product_data["ativo"]
+                        )
+                        produtos_sem_estoque.append(EstoqueComProdutoDTO(
+                            estoque=self._entity_to_response_dto(inventory),
+                            produto=self._product_entity_to_dto(product)
+                        ))
+                    except httpx.HTTPStatusError as e:
+                        logger.error(f"Product not found: {inventory.produto_id} - API error: {e}")
+                    except httpx.RequestError as e:
+                        logger.error(f"Failed to connect to product service: {e}")
             
             return EstoqueZeradoDTO(
                 produtos_sem_estoque=produtos_sem_estoque,

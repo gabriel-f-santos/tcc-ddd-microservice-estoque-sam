@@ -19,6 +19,10 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>    # ou <SecureString>
     Default: /secret/database_url
 
+  InternalApiKeyParameter:
+    Type: AWS::SSM::Parameter::Value<String>    # ou <SecureString>
+    Default: /secret/internal_api_key
+
 Globals:
   Function:
     Runtime: python3.13
@@ -29,6 +33,7 @@ Globals:
         ENVIRONMENT: !Ref Environment
         LOG_LEVEL: INFO
         DATABASE_URL: !Ref DatabaseUrlParameter
+        INTERNAL_API_KEY: !Ref InternalApiKeyParameter
     Tags:
       Service: estoque    # tag aplicada a todas as Lambdas
     VpcConfig:

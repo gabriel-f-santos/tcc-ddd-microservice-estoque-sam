@@ -19,7 +19,7 @@ class EstoqueModel(Base):
     __table_args__ = {"schema": "inventory"}
     
     id = Column(PGUUID(as_uuid=True), primary_key=True)
-    produto_id = Column(PGUUID(as_uuid=True), ForeignKey("inventory.produtos.id"), unique=True, nullable=False, index=True)
+    produto_id = Column(PGUUID(as_uuid=True), unique=True, nullable=False, index=True)
     quantidade_atual = Column(Integer, nullable=False, default=0)
     quantidade_reservada = Column(Integer, nullable=False, default=0)
     nivel_minimo = Column(Integer, nullable=False, default=0)

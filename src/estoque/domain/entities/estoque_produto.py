@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
+from src.estoque.domain.value_objects.sku import SKU
 from src.estoque.domain.value_objects.unidade_medida import UnidadeMedida
 from src.shared.domain.entities.base import AggregateRoot, Entity
 from src.shared.domain.exceptions.base import ValidationException, BusinessRuleException
