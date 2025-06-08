@@ -7,7 +7,6 @@ from uuid import UUID
 
 from pydantic import Field
 
-from src.produto.application.dto.produto_dto import ProdutoResponseDTO
 from src.shared.application.dto.base import BaseDTO, CreateDTO, UpdateDTO, ResponseDTO
 
 
@@ -59,11 +58,21 @@ class EstoqueResponseDTO(ResponseDTO):
     is_below_minimum: bool = Field(description="Is below minimum level")
     is_out_of_stock: bool = Field(description="Is out of stock")
 
+class EstoqueProdutoResponseDTO(ResponseDTO):
+    """DTO for product responses."""
+    sku: str
+    nome: str
+    descricao: str
+    categoria: str
+    unidade_medida: str
+    nivel_minimo: int
+    ativo: bool
+
 
 class EstoqueComProdutoDTO(BaseDTO):
     """DTO for inventory with product information."""
     estoque: EstoqueResponseDTO
-    produto: "ProdutoResponseDTO"
+    produto: "EstoqueProdutoResponseDTO"
 
 
 class EstoqueListResponseDTO(BaseDTO):

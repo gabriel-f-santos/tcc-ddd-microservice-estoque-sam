@@ -62,7 +62,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: .
-      Handler: handlers.estoque_handler.create_inventory_handler
+      Handler: src.handlers.estoque_handler.create_inventory_handler
       Description: Create new inventory record
       Events:
         CreateInventory:
@@ -76,7 +76,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: .
-      Handler: handlers.estoque_handler.get_inventory_by_product_handler
+      Handler: src.handlers.estoque_handler.get_inventory_by_product_handler
       Description: Get inventory by product ID
       Events:
         GetInventoryByProduct:
@@ -90,7 +90,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: .
-      Handler: handlers.estoque_handler.list_inventory_handler
+      Handler: src.handlers.estoque_handler.list_inventory_handler
       Description: List all inventory with pagination
       Events:
         ListInventory:
@@ -106,7 +106,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: .
-      Handler: handlers.estoque_handler.add_stock_handler
+      Handler: src.handlers.estoque_handler.add_stock_handler
       Description: Add stock to product
       Events:
         AddStock:
@@ -120,7 +120,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: .
-      Handler: handlers.estoque_handler.remove_stock_handler
+      Handler: src.handlers.estoque_handler.remove_stock_handler
       Description: Remove stock from product
       Events:
         RemoveStock:
@@ -134,7 +134,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: .
-      Handler: handlers.estoque_handler.adjust_stock_handler
+      Handler: src.handlers.estoque_handler.adjust_stock_handler
       Description: Adjust stock to new quantity
       Events:
         AdjustStock:
@@ -150,7 +150,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: .
-      Handler: handlers.estoque_handler.low_stock_report_handler
+      Handler: src.handlers.estoque_handler.low_stock_report_handler
       Description: Get low stock report
       Events:
         LowStockReport:
@@ -164,7 +164,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: .
-      Handler: handlers.estoque_handler.out_of_stock_report_handler
+      Handler: src.handlers.estoque_handler.out_of_stock_report_handler
       Description: Get out of stock report
       Events:
         OutOfStockReport:
@@ -180,7 +180,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: .
-      Handler: handlers.estoque_handler.health_check_handler
+      Handler: src.handlers.estoque_handler.health_check_handler
       Description: Health check endpoint
       Events:
         HealthCheck:

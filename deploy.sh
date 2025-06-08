@@ -1,4 +1,4 @@
 # Comando único que sempre funciona
 rm -rf .aws-sam/ && \
 sam build && \
-sam deploy --force-upload --no-confirm-changeset
+sam deploy --force-upload --no-confirm-changeset --parameter-overrides DeploymentTimestamp=$(date +%s)

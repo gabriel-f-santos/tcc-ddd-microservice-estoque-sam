@@ -3,15 +3,19 @@
 
 import json
 import functools
-from typing import Dict, Any, Callable, Optional
+from typing import Dict, Any, Callable, List, Optional
 from dataclasses import dataclass
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.shared.infrastructure.database.connection import get_async_session
+from src.shared.infrastructure.database.connection import close_db, get_async_session
+from src.config import get_settings
+from src.shared.infrastructure.database.connection import get_async_session, async_session_factory, init_db
+
 
 logger = structlog.get_logger()
+settings = get_settings()
 
 
 @dataclass
@@ -70,20 +74,33 @@ def lambda_handler(func: Callable) -> Callable:
 
 
 def with_database(func: Callable) -> Callable:
+    """
+    ✅ Decorator que injeta sessão do banco - CORRIGIDO.
+    """
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
+        # ✅ Inicializar apenas se necessário
+        if not async_session_factory:
+            await init_db(settings.database_url)
+        
+        # ✅ Usar context manager do get_async_session
         async for db_session in get_async_session():
             try:
-                kwargs["db"] = db_session
+                kwargs['db'] = db_session
                 result = await func(*args, **kwargs)
-                await db_session.commit()
+                
+                # ✅ Commit apenas se houve modificações
+                if db_session.dirty or db_session.new or db_session.deleted:
+                    await db_session.commit()
+                
                 return result
-            except Exception:
+            except Exception as e:
+                # ✅ Rollback em caso de erro
                 await db_session.rollback()
-                raise
-            finally:
-                await db_session.close()
-
+                raise e
+            # ✅ NÃO chamar close_db() aqui!
+            # Session é fechada automaticamente pelo get_async_session()
+    
     return wrapper
 
 

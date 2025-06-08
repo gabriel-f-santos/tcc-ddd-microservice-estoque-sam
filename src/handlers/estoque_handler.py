@@ -8,7 +8,7 @@ from uuid import UUID
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from utils.lambda_decorators import (
+from src.utils.lambda_decorators import (
     lambda_handler,
     with_database,
     require_auth,
@@ -18,13 +18,14 @@ from utils.lambda_decorators import (
     error_response,
     LambdaException,
 )
-from estoque.application.services.estoque_application_service import EstoqueApplicationService
-from estoque.application.dto.estoque_dto import (
+from src.estoque.application.services.estoque_application_service import EstoqueApplicationService
+from src.estoque.application.dto.estoque_dto import (
     EstoqueCreateDTO,
     EstoqueMovimentacaoDTO,
     EstoqueAjusteDTO,
+    EstoqueProdutoResponseDTO
 )
-from shared.domain.exceptions.base import ValidationException, BusinessRuleException
+from src.shared.domain.exceptions.base import ValidationException, BusinessRuleException
 
 logger = structlog.get_logger()
 
